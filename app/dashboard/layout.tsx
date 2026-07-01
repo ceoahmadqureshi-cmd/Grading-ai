@@ -15,16 +15,19 @@ export default async function DashboardLayout({
 
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
+  const { data: profileRaw } = await supabase
     .from("profiles")
     .select("display_name, centre_id, centres(name)")
     .eq("id", user.id)
     .single();
+  const profile = profileRaw as {
+    display_name: string;
+    centre_id: string;
+    centres: { name: string } | null;
+  } | null;
 
   const displayName = profile?.display_name ?? "老師";
-  // centres relation comes back as an object via the FK join
-  const centreName =
-    (profile as any)?.centres?.name ?? "未知中心";
+  const centreName = profile?.centres?.name ?? "未知中心";
 
   return (
     <div className="min-h-screen bg-paper">
