@@ -31,11 +31,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "未登入" }, { status: 401 });
   }
 
-  const { data: profile } = await supabase
+  const { data: profileRaw } = await supabase
     .from("profiles")
     .select("centre_id")
     .eq("id", user.id)
     .single();
+  const profile = profileRaw as { centre_id: string } | null;
   if (!profile) {
     return NextResponse.json({ error: "找不到使用者所屬中心" }, { status: 403 });
   }
@@ -56,11 +57,12 @@ export async function POST(req: NextRequest) {
 
     // Confirm the student belongs to the caller's own centre (RLS also
     // enforces this, but we check explicitly for a clean error message).
-    const { data: student } = await supabase
+    const { data: studentRaw } = await supabase
       .from("students")
       .select("id, centre_id")
       .eq("id", studentId)
       .single();
+    const student = studentRaw as { id: string; centre_id: string } | null;
 
     if (!student || student.centre_id !== profile.centre_id) {
       return NextResponse.json({ error: "學生不屬於你的中心" }, { status: 403 });
